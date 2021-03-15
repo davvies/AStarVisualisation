@@ -77,7 +77,7 @@ void Board::PerformAStarSearch()
 
 			//search local nodes
 
-			if (current->x < 14) {
+			if (current->x < ROWS-1) {
 				localNodes.push_back(&grid[(current->x + 1) * ROWS + current->y]);
 			}
 
@@ -89,7 +89,7 @@ void Board::PerformAStarSearch()
 				localNodes.push_back(&grid[current->x * ROWS + (current->y - 1)]);
 			}
 
-			if (current->y < 14) {
+			if (current->y < COLS-1) {
 				localNodes.push_back(&grid[current->x * ROWS + (current->y + 1)]);
 			}
 
@@ -99,15 +99,15 @@ void Board::PerformAStarSearch()
 					localNodes.push_back(&grid[(current->x - 1) * ROWS + (current->y - 1)]);
 				}
 
-				if (current->y > 0 && current->x < 14) {
+				if (current->y > 0 && current->x < (ROWS-1)) {
 					localNodes.push_back(&grid[(current->x + 1) * ROWS + (current->y - 1)]);
 				}
 
-				if (current->x < 14 && current->y < 14) {
+				if (current->x < 14 && current->y < (COLS-1)) {
 					localNodes.push_back(&grid[(current->x + 1) * ROWS + (current->y + 1)]);
 				}
 
-				if (current->x > 0 && current->y < 14) {
+				if (current->x > 0 && current->y < (COLS-1)) {
 					localNodes.push_back(&grid[(current->x - 1) * ROWS + (current->y + 1)]);
 				}
 
@@ -125,6 +125,7 @@ void Board::PerformAStarSearch()
 
 					if (std::count(openNodeList.begin(), openNodeList.end(), neighbour) > 0) {
 
+						//using the neighbours g to decide to trek through a path
 						if (tentativeG < neighbour->g) {
 
 							neighbour->g = tentativeG;
@@ -157,6 +158,7 @@ void Board::PerformAStarSearch()
 			
 			m_runSuccessful = false;
 
+			//freeze algorithm
 			endFound = true;
 
 			return;

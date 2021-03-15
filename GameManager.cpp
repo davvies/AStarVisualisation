@@ -14,6 +14,7 @@ GameManager::GameManager()
 GameManager::~GameManager()
 {
 	std::cout << "\n ENDING.. \n";
+	delete p_window;
 }
 
 int GameManager::RunVisualisation()

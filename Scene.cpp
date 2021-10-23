@@ -23,3 +23,8 @@ void Scene::SceneStart()
 	std::cerr << "\n**ERROR** - Scene start not specified\n";
 }
 
+void Scene::CacheTextures()
+{
+	std::cerr << "\n**NOTICE** - No textures cached for this scene\n";
+}
+

@@ -1,10 +1,15 @@
 #pragma once
 #include "Scene.h"
 #include "Board.h"
+#include "UIButton.h"
+#include "WindowMetaData.h"
 #include <vector>
 
 //This scene renders the path-finding to a window
 class s_VisualScene : public Scene {
+
+	enum class MouseHold { LEFT_CLICK, MIDDLE_CLICK, RIGHT_CLICK };
+
 
 public:
 	s_VisualScene();
@@ -29,19 +34,12 @@ public:
 
 private:
 
-	//has the algorithm started
-	bool hasBeginBeenClicked(sf::RenderWindow* window);
-
-	//check to see if mouse input is in the second checkbox
-	bool inCheckBoxTwoRegion(sf::RenderWindow* window);
-
-	//check to see if mouse input is in the first checkbox
-	bool inCheckBoxOneRegion(sf::RenderWindow* window);
+	void CacheTextures() override;
 
 	std::vector<sf::Sprite> m_SpriteBuffer;
 
 	//current active board
-	Board m_gameBoard;
+	Board m_gameBoard { sf::Vector2f { X_RESOLUTION, Y_RESOLUTION } };
 
 	/*
 	when false the selection screen is shown,
@@ -60,4 +58,28 @@ private:
 	*/
 	bool m_checkBoxOneSelected = false;	
 	bool m_checkBoxTwoSelected = false;
+
+	bool m_draggingMouse = false;
+	
+	MouseHold m_currentDragKey; 
+
+	sf::Sprite m_tickboxOneSPR;
+	sf::Sprite m_tickboxTwoSPR;
+	sf::Sprite m_renderSPR;
+
+	sf::Texture m_homeTEX;
+	sf::Texture m_flagTEX;
+	sf::Texture m_obstacleTEX;
+	sf::Texture m_errorTEX;
+	sf::Texture m_selectArgsTEX;
+	sf::Texture m_tickTEX;
+
+	//reset-screen timer
+	const float m_timeToWait = 3; 
+
+	//on screen buttons
+	UIButton btn_allowDiag { 210, 243, 153, 187 };
+	UIButton btn_useManhattenDistance { 210, 243, 362, 392 };
+	UIButton btn_beginSimulation { 416, 464, 463, 479 };
+
 };

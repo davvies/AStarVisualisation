@@ -2,66 +2,72 @@
 #include <iostream>
 #include <cmath>
 
-constexpr auto ROWS = 15;
-constexpr auto COLS =  15;
 
-const sf::Color Cgray(210, 210, 210);
-
-//X RES CHANGED BY ONE IN GAME MANAGER, TO FIX - CHANGE X RES IN GAME MANAGER BY ONE
-Board::Board()
+Board::Board(sf::Vector2f windowRes)
 {
 	//init standard board
-	for (int i = 0; i < ROWS; i++) {
-		for (int y = 0; y < ROWS; y++) {
-		 auto& givenNode = grid[i * ROWS + y];
+	for (int i = 0; i < rowsC; i++) {
+		for (int y = 0; y < colsC; y++) {
+
+			auto& givenNode = m_gridArr[i * rowsC + y];
+
 			givenNode.x = i;
 			givenNode.y = y;
-			givenNode.graphic.setFillColor(Cgray);
+
+			givenNode.graphic.setFillColor(m_gray);
+
 			givenNode.graphic.setOutlineThickness(1);
+
 			givenNode.graphic.setOutlineColor({ sf::Color::Black });
-			givenNode.graphic.setSize({ 32.47,32.47});
-			givenNode.graphic.setPosition(i * 32.47+1, y * 32.47+2 );
+
+		    m_tileSize = { float(windowRes.x / rowsC), float(windowRes.y / colsC)  };
+
+			givenNode.graphic.setSize(m_tileSize);
+
+			givenNode.graphic.setPosition((y * givenNode.graphic.getSize().x), i* givenNode.graphic.getSize().x );
 			
 		}
 	}
 
-	int maxElement = (ROWS * COLS) - 1;
+	int maxElement = (rowsC * colsC) - 1;
 }
 
 void Board::PerformAStarSearch()
 {
 	bool endFound = false;
 
+//	openNodeList.clear(); //if openNodelist is called twice it won't be in a good state
+
 	//open nodes always start with first one
-	openNodeList.push_back(startNode);
+	m_openNodePTRList.push_back(m_startNodePTR);
 
-	while (endFound == false && startNode !=nullptr && endNode != nullptr) {
+	while (!endFound && m_startNodePTR && m_endNodePTR ) {
 
-		if (openNodeList.size() > 0) {
+		if (m_openNodePTRList.size() > 0) {
 
 			int lowestIndex = 0;
 
-			for (int i = 0; i < openNodeList.size(); i++) {
+			for (int i = 0; i < m_openNodePTRList.size(); i++) {
 
-				if (openNodeList[i]->f < openNodeList[lowestIndex]->f) {
+				if (m_openNodePTRList[i]->f < m_openNodePTRList[lowestIndex]->f) {
 
 					lowestIndex = i;
 
 				}
 			}
 
-			//get reference to current node with the lost F score (best first)
-			auto current = openNodeList[lowestIndex];
+			//get reference to current node with the last F score (best first)
+			auto current = m_openNodePTRList[lowestIndex];
 
-			if (current == endNode) {
+			if (current == m_endNodePTR) {
 				//get the path
 				Node* temp = current;
 
 				while (temp->previous != nullptr) {
 
 					//create optimal path
-					optimalPath.push_back(current);
-					optimalPath.push_back(temp->previous);
+					m_optimalPathPTRList.push_back(current);
+					m_optimalPathPTRList.push_back(temp->previous);
 					temp = temp->previous;
 
 				}
@@ -70,45 +76,46 @@ void Board::PerformAStarSearch()
 
 				return;
 			}
-			openNodeList.erase(openNodeList.begin() + lowestIndex);
-			closedNodeList.push_back(current);
+
+			m_openNodePTRList.erase(m_openNodePTRList.begin() + lowestIndex);
+			m_closedNodePTRList.push_back(current);
 
 			std::vector<Node*> localNodes;
 
 			//search local nodes
 
-			if (current->x < ROWS-1) {
-				localNodes.push_back(&grid[(current->x + 1) * ROWS + current->y]);
+			if (current->x < rowsC-1) {
+				localNodes.push_back(&m_gridArr[Index1D((current->x + 1), current->y)]);
 			}
 
 			if (current->x > 0) {
-				localNodes.push_back(&grid[(current->x - 1) * ROWS + current->y]);
+				localNodes.push_back(&m_gridArr[Index1D((current->x - 1), current->y)]);
 			}
 
 			if (current->y > 0) {
-				localNodes.push_back(&grid[current->x * ROWS + (current->y - 1)]);
+				localNodes.push_back(&m_gridArr[Index1D(current->x,(current->y - 1))]);
 			}
 
-			if (current->y < COLS-1) {
-				localNodes.push_back(&grid[current->x * ROWS + (current->y + 1)]);
+			if (current->y < colsC-1) {
+				localNodes.push_back(&m_gridArr[Index1D(current->x,(current->y + 1))]);
 			}
 
 			//consider diagonals in case of argument chosen
 			if (m_allowDiagonals) {
 				if (current->y > 0 && current->x > 0) {
-					localNodes.push_back(&grid[(current->x - 1) * ROWS + (current->y - 1)]);
+					localNodes.push_back(&m_gridArr[Index1D((current->x - 1),(current->y - 1))]);
 				}
 
-				if (current->y > 0 && current->x < (ROWS-1)) {
-					localNodes.push_back(&grid[(current->x + 1) * ROWS + (current->y - 1)]);
+				if (current->y > 0 && current->x < (rowsC-1)) {
+					localNodes.push_back(&m_gridArr[Index1D((current->x + 1),(current->y - 1))]);
 				}
 
-				if (current->x < 14 && current->y < (COLS-1)) {
-					localNodes.push_back(&grid[(current->x + 1) * ROWS + (current->y + 1)]);
+				if (current->x < (rowsC-1) && current->y < (colsC-1)) {
+					localNodes.push_back(&m_gridArr[Index1D((current->x + 1), (current->y + 1))]);
 				}
 
-				if (current->x > 0 && current->y < (COLS-1)) {
-					localNodes.push_back(&grid[(current->x - 1) * ROWS + (current->y + 1)]);
+				if (current->x > 0 && current->y < (colsC-1)) {
+					localNodes.push_back(&m_gridArr[Index1D((current->x - 1),(current->y + 1))]);
 				}
 
 			}
@@ -116,14 +123,14 @@ void Board::PerformAStarSearch()
 			for (auto& neighbour : localNodes) {
 
 				//if not visited the neighbour and its not an obstacle...
-				if (neighbour->isObsticle==false && std::count(closedNodeList.begin(), closedNodeList.end(), neighbour) == 0) {
+				if (neighbour->isObsticle==false && std::count(m_closedNodePTRList.begin(), m_closedNodePTRList.end(), neighbour) == 0) {
 
 					//may be slightly problematic for full precision as diagonals are usually longer away
 					int tentativeG = neighbour->g + 1;
 
 					bool goingOnNewPath = false; 
 
-					if (std::count(openNodeList.begin(), openNodeList.end(), neighbour) > 0) {
+					if (std::count(m_openNodePTRList.begin(), m_openNodePTRList.end(), neighbour) > 0) {
 
 						//using the neighbours g to decide to trek through a path
 						if (tentativeG < neighbour->g) {
@@ -138,13 +145,13 @@ void Board::PerformAStarSearch()
 
 						neighbour->g = tentativeG;
 						goingOnNewPath = true;
-						openNodeList.push_back(neighbour);
+						m_openNodePTRList.push_back(neighbour);
 
 					}
 					if (goingOnNewPath) {
 
 						//update the node f(n) for the seen node 
-						neighbour->h = OptimalNodeHeuristic(neighbour, endNode);
+						neighbour->h = OptimalNodeHeuristic(neighbour, m_endNodePTR);
 						neighbour->f = neighbour->g + neighbour->h;
 						neighbour->previous = current;
 					}
@@ -155,9 +162,8 @@ void Board::PerformAStarSearch()
 		else {
 			
 			//NO PATH HAS BEEN FOUND
-			
 			m_runSuccessful = false;
-
+			std::cout << "stopped";
 			//freeze algorithm
 			endFound = true;
 
@@ -170,23 +176,23 @@ void Board::ColourOptimalPath()
 {
 	//colour different lists
 
-	for (auto& node : closedNodeList) {
+	for (auto& node : m_closedNodePTRList) {
 
-		if(node != startNode || node != endNode)
+		if(node != m_startNodePTR || node != m_endNodePTR)
 			node->graphic.setFillColor(sf::Color::Yellow);
 
 	}
 
-	for (auto& node : openNodeList) {
+	for (auto& node : m_openNodePTRList) {
 
-		if (node != startNode || node != endNode)
+		if (node != m_startNodePTR || node != m_endNodePTR)
 			node->graphic.setFillColor(sf::Color::Cyan);
 
 	}
 
-	for (auto& node : optimalPath) {
+	for (auto& node : m_optimalPathPTRList) {
 
-		if (node != startNode || node != endNode)
+		if (node != m_startNodePTR || node != m_endNodePTR)
 			node->graphic.setFillColor(sf::Color::Red);
 
 	}
@@ -203,6 +209,46 @@ float Board::OptimalNodeHeuristic(Node* n_One, Node* n_Two)
 	return sqrt(pow(n_Two->x - n_One->x, 2) + pow(n_Two->y - n_One->y, 2) * 1.0);
 
 }
+
+void Board::Reset(bool allowDiagonals, bool useManhattenDistance)
+{
+	m_allowDiagonals = allowDiagonals;
+	m_useManhatten = useManhattenDistance;
+
+	sf::Texture defaultTexture;
+
+	for (auto& n : m_gridArr) {
+
+		n.graphic.setFillColor(m_gray);
+		n.graphic.setTexture(nullptr);
+		n.isObsticle = false; 
+		n.h = 0;
+		n.g = 0; 
+		n.f = 0;
+		n.previous = nullptr;
+	}
+	
+	m_startNodePTR = nullptr; 
+	m_endNodePTR = nullptr;
+
+	m_openNodePTRList.clear();
+	m_closedNodePTRList.clear();
+	m_optimalPathPTRList.clear();
+
+	m_runSuccessful = true;
+}
+
+sf::Vector2f Board::GetTileSize() const
+{
+	return m_tileSize;
+}
+
+int Board::Index1D(int x, int y) const
+{
+	return x * rowsC + y;
+}
+
+
 
 
 

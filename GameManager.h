@@ -3,6 +3,7 @@
 #include <string>
 #include "s_IntroScene.h"
 #include "s_VisualScene.h"
+#include "WindowMetaData.h"
 
 class GameManager {
 
@@ -34,13 +35,16 @@ private:
 	PlayState m_activeGameState;
 
 	//render window objects often take up substantial stack memory
-	sf::RenderWindow* p_window;
+	sf::RenderWindow* m_windowPTR;
 
 	//scene references
 	s_IntroScene m_index;
 	s_VisualScene m_visual;
 	
-	Scene* p_currentScene;
+	Scene* m_currentScenePTR;
 
 	bool m_shouldUpdateScene;
+
+	const sf::Color c_gray{ 210, 210, 210 };
+
 };

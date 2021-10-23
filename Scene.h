@@ -19,4 +19,7 @@ public:
 	//called on first frame
 	virtual void SceneStart();
 
+	//cleanup function for initialing textures in the stack 
+	virtual void CacheTextures();
+
 };

@@ -1,10 +1,6 @@
 #include "GameManager.h"
 #include <iostream>
 
-constexpr auto X_RESOULTION = 488;
-constexpr auto Y_RESOULTION = 489;
-const sf::Color c_gray(210, 210, 210);
-
 GameManager::GameManager()
 {
 	InitInstanceVars();
@@ -14,7 +10,9 @@ GameManager::GameManager()
 GameManager::~GameManager()
 {
 	std::cout << "\n ENDING.. \n";
-	delete p_window;
+
+	delete m_windowPTR;
+	delete m_currentScenePTR;
 }
 
 int GameManager::RunVisualisation()
@@ -27,14 +25,15 @@ int GameManager::RunVisualisation()
 void GameManager::GlobalUpdate()
 {
 	GetActiveScene();
-	p_currentScene->SceneStart();
+	m_currentScenePTR->SceneStart();
 	m_shouldUpdateScene = false; 
 
 	//used in the tracking of deltaT
 	sf::Clock internalClock;
 
-	while (p_window->isOpen())
+	while (m_windowPTR->isOpen())
 	{
+
 		if (m_shouldUpdateScene) {
 			UpdateScene();
 			m_shouldUpdateScene = false; 
@@ -45,21 +44,21 @@ void GameManager::GlobalUpdate()
 
 		sf::Event event;
 
-		while (p_window->pollEvent(event))
+		while (m_windowPTR->pollEvent(event))
 		{
-			p_currentScene->PollEvents(event, p_window, m_shouldUpdateScene);
+			m_currentScenePTR->PollEvents(event, m_windowPTR, m_shouldUpdateScene);
 
 			if (event.type == sf::Event::Closed)
-				p_window->close();
+				m_windowPTR->close();
 
 		}
-		p_currentScene->SceneTick(internalClock.restart().asSeconds());
 
-		p_window->clear(c_gray);
-		p_currentScene->RenderBuffer(*p_window);
-		p_window->display();
+		m_currentScenePTR->SceneTick(internalClock.restart().asSeconds());
+
+		m_windowPTR->clear(c_gray);
+		m_currentScenePTR->RenderBuffer(*m_windowPTR);
+		m_windowPTR->display();
 	 }
-
 
 	}
 
@@ -68,32 +67,33 @@ void GameManager::InitInstanceVars()
 	//default level is the begin screen
 	m_activeGameState = PlayState::GAMEBEGIN;
 
-	p_window = nullptr; 
-	p_currentScene = nullptr;
+	m_windowPTR = nullptr; 
+	m_currentScenePTR = nullptr;
 }
 
 void GameManager::InitWindow()
 {
-	this->p_window = new sf::RenderWindow(sf::VideoMode(X_RESOULTION, Y_RESOULTION),
+	this->m_windowPTR = new sf::RenderWindow(sf::VideoMode(X_RESOLUTION, Y_RESOLUTION),
 		"A* Visualisation Tool", sf::Style::Titlebar | sf::Style::Close);
+
 	s_IntroScene m_index();
 }
 
 void GameManager::GetActiveScene()
 {
-	//Update scene realtive to active one
+	//Update scene relative to active one
 	switch (m_activeGameState) {
 
 	case PlayState::GAMEBEGIN:
-		p_currentScene = &m_index;
+		m_currentScenePTR = &m_index;
 		break;
 
 	case PlayState::GAMERUNNNING:
-		p_currentScene = &m_visual;
+		m_currentScenePTR = &m_visual;
 		break;
 
 	default: 
-		std::cout << "*FATAL ERROR* - No state found";
+		std::cout << "\n *FATAL ERROR* - No state found \n";
 		break;
 	}
 }
@@ -101,6 +101,7 @@ void GameManager::GetActiveScene()
 void GameManager::UpdateScene()
 {
 	m_activeGameState = PlayState::GAMERUNNNING;
+
 	m_visual.SceneStart();
 }
 

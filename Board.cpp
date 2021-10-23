@@ -36,9 +36,6 @@ void Board::PerformAStarSearch()
 {
 	bool endFound = false;
 
-//	openNodeList.clear(); //if openNodelist is called twice it won't be in a good state
-
-	//open nodes always start with first one
 	m_openNodePTRList.push_back(m_startNodePTR);
 
 	while (!endFound && m_startNodePTR && m_endNodePTR ) {
